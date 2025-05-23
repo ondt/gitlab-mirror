@@ -1,40 +1,49 @@
 #!/usr/bin/env bash
 
-target=$1
-
-if [ -z "$target" ]; then
-	echo "Error: Directory argument not provided."
+if test "$#" -ne 3; then
+	echo "Usage: $0 <host> <token> <output_path>"
 	exit 1
 fi
 
-if [ ! -d "$target" ]; then
-	echo "Error: '$target' is not a directory."
-	exit 1
-fi
+host=$1
+token=$2
+out=$3
 
-index_file="$target"/index.txt
+function say {
+	echo -e "\e[34;1m$1\e[0m"
+}
 
-export GITLAB_HOST="gitlab.ii.zone"
+mkdir -p "$out"
 
 all_pages=""
 for page_num in $(seq 1 9999999); do
-	echo "listing page $page_num"
-	page=$(glab repo list --all --per-page=100 --page="$page_num")
-	line_count=$(echo "$page" | wc -l)
-	if ((line_count <= 2)); then
+	say "listing page $page_num"
+	url="https://$host/api/v4/projects?per_page=100&page=$page_num"
+	page=$(curl -s --header "PRIVATE-TOKEN: $token" "$url" |
+		jq -r '.[] | "\(.path_with_namespace)\t\(.ssh_url_to_repo)"')
+	if test -z "$page"; then
 		break
 	fi
 	all_pages+="$page"$'\n'
 done
 
-repos=$(echo "$all_pages" | cut -f1-2 | grep -v '^[[:space:]]*$' | sed -r 's/([^\t])\t([^\t])/\1\t\2/;t;d' | sort)
+repos=$(echo "$all_pages" | grep -v '^[[:space:]]*$' | sort)
+echo "$repos" | column -t -s $'\t' >"$out"/repos.txt
 
-count=$(echo "$repos" | wc -l)
-echo "found $count projects"
-
-echo "$repos" | column -t -s $'\t' >"$index_file"
+count=$(wc -l <<<"$repos")
+say "found $count projects"
 
 while IFS=$'\t' read -r path url; do
-	echo "cloning $url into $path"
-	git clone "$url" "$target/$path"
+	target="$out/repos/$path"
+	tmptarget="$out/tmp/$path"
+	if test -d "$target/.git"; then
+		say "updating '$url' at '$target'"
+		mkdir -p "$tmptarget"
+		mv -T "$target" "$tmptarget"
+		git clone --reference "$tmptarget" --dissociate "$url" "$target"
+		rm -rf "$out/tmp"
+	else
+		say "cloning '$url' into '$target'"
+		git clone "$url" "$target"
+	fi
 done <<<"$repos"
