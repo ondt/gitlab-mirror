@@ -30,18 +30,16 @@ done
 repos=$(echo "$all_pages" | grep -v '^[[:space:]]*$' | sort)
 echo "$repos" | column -t -s $'\t' >"$out"/repos.txt
 
-count=$(wc -l <<<"$repos")
-say "found $count projects"
+say "found $(wc -l <<<"$repos") projects"
 
 while IFS=$'\t' read -r path url; do
 	target="$out/repos/$path"
-	tmptarget="$out/tmp/$path"
+	tmp="$out/tmp"
 	if test -d "$target/.git"; then
 		say "updating '$url' at '$target'"
-		mkdir -p "$tmptarget"
-		mv -T "$target" "$tmptarget"
-		git clone --reference "$tmptarget" --dissociate "$url" "$target"
-		rm -rf "$out/tmp"
+		mv -T "$target" "$tmp"
+		git clone --reference "$tmp" --dissociate "$url" "$target"
+		rm -rf "$tmp"
 	else
 		say "cloning '$url' into '$target'"
 		git clone "$url" "$target"
