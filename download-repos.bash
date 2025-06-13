@@ -15,6 +15,8 @@ function say {
 
 mkdir -p "$out"
 
+start=$(date +%s)
+
 all_pages=""
 for page_num in $(seq 1 9999999); do
 	say "listing page $page_num"
@@ -45,3 +47,8 @@ while IFS=$'\t' read -r path url; do
 		git clone "$url" "$target"
 	fi
 done <<<"$repos"
+
+end=$(date +%s)
+duration=$(echo $((end-start)) | awk '{print int($1/60)"min "int($1%60)"sec"}')
+
+say "done in $duration"
