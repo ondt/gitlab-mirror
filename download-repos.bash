@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e
+
 if test "$#" -ne 3; then
 	echo "Usage: $0 <host> <token> <output_path>"
 	exit 1
@@ -35,16 +37,17 @@ echo "$repos" | column -t -s $'\t' >"$out"/repos.txt
 say "found $(wc -l <<<"$repos") projects"
 
 while IFS=$'\t' read -r path url; do
-	target="$out/repos/$path"
-	tmp="$out/tmp"
+	target="$out/$path"
 	if test -d "$target/.git"; then
 		say "updating '$url' at '$target'"
-		mv -T "$target" "$tmp"
-		git clone --reference "$tmp" --dissociate "$url" "$target"
-		rm -rf "$tmp"
+		pushd "$target" >/dev/null
+		git fetch --depth 1
+		git reset --hard "origin/$(git symbolic-ref --short HEAD)"
+		git clean -fdx
+		popd >/dev/null
 	else
 		say "cloning '$url' into '$target'"
-		git clone "$url" "$target"
+		git clone "$url" "$target" --depth 1 || true
 	fi
 done <<<"$repos"
 
