@@ -41,8 +41,8 @@ while IFS=$'\t' read -r path url; do
 	if test -d "$target/.git"; then
 		say "updating '$url' at '$target'"
 		pushd "$target" >/dev/null
-		git fetch --depth 1
-		git reset --hard "origin/$(git symbolic-ref --short HEAD)"
+		git fetch --depth 1 || true
+		git reset --hard "origin/$(git symbolic-ref --short HEAD)" || true
 		git clean -fdx
 		popd >/dev/null
 	else
