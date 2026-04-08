@@ -22,9 +22,13 @@ mkdir -p "$out"
 
 start=$(date +%s)
 
+total_pages=$(curl -sI --header "PRIVATE-TOKEN: $token" \
+  "https://$host/api/v4/projects?per_page=100&page=1" |
+  grep -i '^x-total-pages:' | tr -d '\r' | awk '{print $2}')
+
 all_pages=""
-for page_num in $(seq 1 9999999); do
-	say "listing page $page_num"
+for page_num in $(seq 1 "$total_pages"); do
+	say "listing page $page_num / $total_pages"
 	url="https://$host/api/v4/projects?per_page=100&page=$page_num"
 	page=$(curl -s --header "PRIVATE-TOKEN: $token" "$url" |
 		jq -r '.[] | "\(.path_with_namespace)\t\(.ssh_url_to_repo)"')
