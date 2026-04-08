@@ -49,7 +49,7 @@ while IFS=$'\t' read -r path url; do
 		say "updating '$url' at '$target'"
 		pushd "$target" >/dev/null
 		git fetch --depth 1 || true
-		git reset --hard "origin/$(git symbolic-ref --short HEAD)" || true
+		git reset --hard origin/HEAD || true
 		git clean -fdx
 		popd >/dev/null
 	else
