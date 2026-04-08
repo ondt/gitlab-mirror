@@ -19,8 +19,8 @@ start=$(date +%s)
 
 say "getting a list of all projects"
 total_pages=$(curl -sI --header "PRIVATE-TOKEN: $token" \
-  "https://$host/api/v4/projects?per_page=100&page=1" |
-  grep -i '^x-total-pages:' | tr -d '\r' | awk '{print $2}')
+	"https://$host/api/v4/projects?per_page=100&page=1" |
+	grep -i '^x-total-pages:' | tr -d '\r' | awk '{print $2}')
 
 all_pages=""
 for page_num in $(seq 1 "$total_pages"); do
@@ -55,6 +55,6 @@ while IFS=$'\t' read -r path url; do
 done <<<"$repos"
 
 end=$(date +%s)
-duration=$(echo $((end-start)) | awk '{print int($1/60)"min "int($1%60)"sec"}')
+duration=$(echo $((end - start)) | awk '{print int($1/60)"min "int($1%60)"sec"}')
 
 say "done in $duration"
