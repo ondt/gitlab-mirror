@@ -15,6 +15,9 @@ function say {
 	echo -e "\e[34;1m$1\e[0m"
 }
 
+# reuse one ssh connection
+export GIT_SSH_COMMAND="ssh -o ControlMaster=auto -o ControlPath=/tmp/git-ssh-cm-$$ -o ControlPersist=10"
+
 mkdir -p "$out"
 
 start=$(date +%s)
