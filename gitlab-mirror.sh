@@ -2,14 +2,9 @@
 
 set -euo pipefail
 
-if test "$#" -ne 3; then
-	echo "Usage: $0 <host> <token> <output_path>"
-	exit 1
-fi
-
-host=$1
-token=$2
-out=$3
+host="$GITLAB_HOST"
+token="$GITLAB_TOKEN"
+out="${XDG_CACHE_HOME:-$HOME/.cache}/gitlab-mirror/$host"
 
 function say {
 	echo -e "\e[34;1m$1\e[0m"
@@ -22,6 +17,7 @@ mkdir -p "$out"
 
 start=$(date +%s)
 
+say "getting a list of all projects"
 total_pages=$(curl -sI --header "PRIVATE-TOKEN: $token" \
   "https://$host/api/v4/projects?per_page=100&page=1" |
   grep -i '^x-total-pages:' | tr -d '\r' | awk '{print $2}')
