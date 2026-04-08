@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 if test "$#" -ne 3; then
 	echo "Usage: $0 <host> <token> <output_path>"
